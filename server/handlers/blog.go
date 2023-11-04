@@ -52,10 +52,25 @@ func BlogCreate(c *fiber.Ctx) error {
 
 	record := new(models.Blog)
 
-	if err := c.BodyParser(&record); err != nil {
+	if err := c.BodyParser(record); err != nil {
 		log.Println("Error in parsing request.")
 		context["statusText"] = ""
 		context["msg"] = "Something went wrong."
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		log.Println("Error in file upload.", err)
+	}
+
+	if file.Size > 0 {
+		filename := "./static/uploads/" + file.Filename
+
+		if err := c.SaveFile(file, filename); err != nil {
+			log.Println("Error in file uploading...", err)
+		}
+
+		record.Image = filename
 	}
 
 	result := dbs.DBCoonn.Create(record)

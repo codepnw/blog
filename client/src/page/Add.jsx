@@ -19,12 +19,16 @@ const Add = () => {
   const saveForm = async (data) => {
     setLoading(true)
 
-    // data.file = data.image[0]
-    // data.image = null
+    data.file = data.image[0]
+    data.image = null
 
     try {
       const apiUrl = import.meta.env.VITE_APP_API
-      const response = await axios.post(apiUrl, data)
+      const response = await axios.post(apiUrl, data, {
+        headers: {
+            "Content-Type": "multipart/form-data"
+        }
+      })
 
       if (response.status === 201) {
         console.log(response)
@@ -88,8 +92,8 @@ const Add = () => {
               {errors.post && (
                 <div className="error">{errors.post.message}</div>
               )}
-            </Col>
-            {/* <Col xs="12" className="py-3">
+             </Col>
+            <Col xs="12" className="py-3">
               <label>Image</label>
               <input
                 type="file"
@@ -97,7 +101,7 @@ const Add = () => {
                 placeholder="Please enter content"
                 {...register("image")}
               />
-            </Col> */}
+            </Col>
             <Col>
               <button type="submit">Save</button>
             </Col>
