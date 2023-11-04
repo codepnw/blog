@@ -22,6 +22,28 @@ func BlogList(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(context)
 }
 
+func BlogDetail(c *fiber.Ctx) error {
+	context := fiber.Map{
+		"statusText": "",
+		"msg":        "",
+	}
+
+	id := c.Params("id")
+	var record models.Blog
+
+	dbs.DBCoonn.First(&record, id)
+	if record.ID == 0 {
+		log.Println("Record not Found.")
+		context["msg"] = "Record not Found."
+		return c.Status(fiber.StatusNotFound).JSON(context)
+	}
+
+	context["record"] = record
+	context["statusText"] = "OK"
+	context["msg"] = "Blog Detail"
+	return c.Status(200).JSON(context)
+}
+
 func BlogCreate(c *fiber.Ctx) error {
 	context := fiber.Map{
 		"statusText": "OK",
@@ -30,10 +52,25 @@ func BlogCreate(c *fiber.Ctx) error {
 
 	record := new(models.Blog)
 
-	if err := c.BodyParser(&record); err != nil {
+	if err := c.BodyParser(record); err != nil {
 		log.Println("Error in parsing request.")
 		context["statusText"] = ""
 		context["msg"] = "Something went wrong."
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		log.Println("Error in file upload.", err)
+	}
+
+	if file.Size > 0 {
+		filename := "./static/uploads/" + file.Filename
+
+		if err := c.SaveFile(file, filename); err != nil {
+			log.Println("Error in file uploading...", err)
+		}
+
+		record.Image = filename
 	}
 
 	result := dbs.DBCoonn.Create(record)
